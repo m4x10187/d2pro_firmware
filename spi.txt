@@ -1,0 +1,117 @@
+spi flash mapping
+=================
+
+SST25VF080B
+1024 kB flash, 64 kB / sector
+
+lock bits: BP2..BP0 = 001, protected area = F0000-FFFFF
+
+address      use             size
+===========  ==============  ====
+00000-7FFFF  configuration   512 kB
+80000-EFFFF  firmware        448 kB
+F0000-F0003  backup version  4
+F0010-F0012  D2A address     3
+F0014-F0016  D2B address     3
+F0018-F001A  D2C address     3
+F2000-F3FFF  D2A safe fw     8 kB
+F4000-F5FFF  D2B safe fw     8 kB
+F6000-F7FFF  D2C safe fw     8 kB
+F8000-FFFFF  unused          32 kB
+
+firmware area
+=============
+80000-80003  version number (00010000 = 1.0, 80010000 = 1.0 beta)
+80010-80012  D2A fw address
+80014-80016  D2B fw address
+80018-8001A  D2C fw address
+
+Unprogrammed (ffffff) means: use rescue fw
+
+firmware
+========
+0..1      lsfr seed 1   (bit 2 is forced to '1') (16-bit)
+2..3      lsfr seed 2   (bit 4 is forced to '1') (15-bit)
+4..       firmware upload code
+          <aa bb> = len, (8xxx = delay, ffff = end)
+            <data>
+          ...
+
+configuration area
+==================
+00000..7FFFF
+
+00000     region code (fe=disable, 00..02=jap..eur, others=autodetect)
+01001     region patching (00=disable, others=enable)
+01002     audio fix (00=disable, others=enable)
+01003     original wii disc speed (00=3x, others=6x)
+01004     original wii dl disc speed (00=3x, others=6x)
+01005     backup disc speed (00=3x, others=6x)
+01006     backup dl disc speed (00=3x, others=6x)
+
+
+d2pro serial commands
+=====================
+get hw version:
+  > 20
+  < 01 00
+
+set leds:
+  > 3X, X=0b000000BR
+
+read jumpers:
+  > 22
+  < 0b000000AB
+
+send spi data:
+  > 23 NN
+  > dd dd..
+
+recv spi data:
+  > 24 NN
+  < dd dd..
+
+set spi cs:
+  > 25
+
+clear spi cs:
+  > 26
+
+read spi so:
+  > 27
+  < 0b00000001
+
+get drive version:
+  > 28
+  < 0X
+
+dvd commands
+============
+
+Normal commands:
+  A8 game read
+  E2 audio stream
+  12 inquiry
+  E0 request error
+  D0 read dvd
+  E1 audio stream
+  AB seek
+  E3 stop motor
+  D2 stop laser
+  E4 audio buffer config
+  FE debug
+  FF debug
+  D9 offset
+  D1 read dvd config
+  DF ser meas control
+  DB request disc status
+  AD ?
+  DA read disk bca
+  A4 report key
+  DD set maximum rotation
+  DC request retry number
+
+d2pro commands:
+  1X                                    remapped -> FX
+  30 nn xx xx xx xx xx xx xx xx xx xx   send d2pro command bytes
+  31 nn 00 00 00 00 00 00 00 00 00 00   recv d2pro command bytes (max 4)
